@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convite • Detetive Labrador</title>
+<style>
+  /* ======================================================
+     CONFIGURAÇÃO RÁPIDA — o anfitrião edita só esta seção
+     ====================================================== */
+  :root{
+    --azul-noite:   #0a1a3a;
+    --azul-marinho: #0f2a63;
+    --azul-real:    #1a4bb8;
+    --azul-claro:   #6fb7ff;
+    --dourado:      #ffc93c;
+    --dourado-esc:  #e6a416;
+    --branco:       #f4f8ff;
+    --preto-fita:   #14162b;
+    --verde-ok:     #4ade80;
+    --vermelho-neg: #ff6b6b;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Trebuchet MS','Segoe UI',Verdana,sans-serif;
+    color:var(--branco);
+    background:
+      radial-gradient(ellipse at 50% 20%, var(--azul-real) 0%, var(--azul-marinho) 45%, var(--azul-noite) 100%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    overflow-x:hidden;
+  }
+
+  /* faixa "cautela" no topo e no rodapé, igual ao pôster */
+  .fita{
+    width:100%;
+    height:22px;
+    background:repeating-linear-gradient(
+      -45deg,
+      var(--dourado) 0 26px,
+      var(--preto-fita) 26px 52px
+    );
+    flex-shrink:0;
+  }
+
+  .paw-bg{
+    position:fixed;
+    inset:0;
+    z-index:0;
+    pointer-events:none;
+    opacity:.06;
+    background-image:
+      radial-gradient(circle 5px at 20px 20px, var(--branco) 99%, transparent),
+      radial-gradient(circle 3px at 10px 10px, var(--branco) 99%, transparent);
+    background-size:120px 120px;
+  }
+
+  main{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:480px;
+    padding:28px 20px 40px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .distintivo{
+    width:74px;
+    height:74px;
+    border-radius:50% 50% 45% 45% / 55% 55% 45% 45%;
+    background:linear-gradient(160deg,var(--azul-real),var(--azul-marinho));
+    border:3px solid var(--dourado);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:34px;
+    margin-bottom:10px;
+    box-shadow:0 6px 18px rgba(0,0,0,.35);
+  }
+
+  h1{
+    font-size:1.9rem;
+    text-align:center;
+    margin:4px 0 2px;
+    letter-spacing:.5px;
+    text-shadow:0 3px 0 rgba(0,0,0,.25);
+  }
+  h1 span{ color:var(--dourado); }
+
+  .subtitulo{
+    text-align:center;
+    color:var(--azul-claro);
+    font-size:.95rem;
+    margin-bottom:24px;
+    max-width:340px;
+  }
+
+  /* ---------- cartão (crachá / arquivo do caso) ---------- */
+  .cartao{
+    width:100%;
+    background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+    border:1px solid rgba(255,201,60,.35);
+    border-radius:18px;
+    padding:26px 22px;
+    backdrop-filter:blur(4px);
+    box-shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+
+  /* ---------- TELA 1: entrada por nome ---------- */
+  #tela-entrada label{
+    display:block;
+    font-size:.85rem;
+    color:var(--dourado);
+    text-transform:uppercase;
+    letter-spacing:1px;
+    margin-bottom:8px;
+  }
+
+  #campo-nome{
+    width:100%;
+    padding:14px 16px;
+    border-radius:10px;
+    border:2px solid var(--azul-real);
+    background:rgba(255,255,255,.95);
+    color:var(--azul-noite);
+    font-size:1rem;
+    font-weight:bold;
+    outline:none;
+  }
+  #campo-nome:focus{ border-color:var(--dourado); }
+
+  .btn{
+    width:100%;
+    margin-top:16px;
+    padding:14px 16px;
+    border:none;
+    border-radius:10px;
+    font-size:1rem;
+    font-weight:bold;
+    letter-spacing:.4px;
+    cursor:pointer;
+    transition:transform .12s ease, filter .12s ease;
+  }
+  .btn:active{ transform:scale(.97); }
+
+  .btn-principal{
+    background:linear-gradient(160deg,var(--dourado),var(--dourado-esc));
+    color:var(--azul-noite);
+  }
+  .btn-principal:hover{ filter:brightness(1.08); }
+
+  .btn-secundario{
+    background:transparent;
+    color:var(--branco);
+    border:2px solid rgba(255,255,255,.35);
+  }
+  .btn-secundario:hover{ border-color:var(--vermelho-neg); color:var(--vermelho-neg); }
+
+  .btn-recusar{
+    background:transparent;
+    color:var(--azul-claro);
+    text-decoration:underline;
+    font-weight:normal;
+    border:none;
+    padding:10px;
+    margin-top:6px;
+    font-size:.85rem;
+  }
+
+  #msg-erro{
+    display:none;
+    margin-top:14px;
+    padding:12px 14px;
+    background:rgba(255,107,107,.15);
+    border:1px solid var(--vermelho-neg);
+    border-radius:10px;
+    font-size:.88rem;
+    color:#ffd7d7;
+    text-align:center;
+  }
+
+  /* ---------- TELA 2: convite ---------- */
+  #tela-convite{ display:none; }
+
+  .foto-convite{
+    width:100%;
+    border-radius:14px;
+    overflow:hidden;
+    border:2px solid var(--dourado);
+    margin-bottom:18px;
+    background:var(--azul-marinho);
+    aspect-ratio:3/4;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .foto-convite img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+
+  .saudacao{
+    text-align:center;
+    font-size:.95rem;
+    color:var(--azul-claro);
+    margin-bottom:2px;
+  }
+  .saudacao b{ color:var(--branco); }
+
+  .titulo-missao{
+    text-align:center;
+    font-size:1.5rem;
+    margin:6px 0 18px;
+  }
+  .titulo-missao span{ color:var(--dourado); }
+
+  .detalhe{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:12px 0;
+    border-top:1px dashed rgba(255,255,255,.18);
+  }
+  .detalhe:first-of-type{ border-top:none; }
+  .detalhe .icone{ font-size:1.3rem; width:28px; text-align:center; flex-shrink:0; }
+  .detalhe .rotulo{
+    font-size:.72rem;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:var(--dourado);
+    margin-bottom:2px;
+  }
+  .detalhe .valor{ font-size:.98rem; line-height:1.35; }
+
+  .briefing{
+    margin-top:18px;
+    padding:14px;
+    background:rgba(255,255,255,.05);
+    border-left:3px solid var(--dourado);
+    border-radius:6px;
+    font-size:.9rem;
+    font-style:italic;
+    color:var(--branco);
+  }
+
+  .acoes{ margin-top:22px; }
+
+  /* ---------- confirmação / carimbo ---------- */
+  #resposta{ display:none; text-align:center; }
+
+  .carimbo{
+    display:inline-block;
+    border:4px solid var(--verde-ok);
+    color:var(--verde-ok);
+    padding:10px 18px;
+    border-radius:10px;
+    font-size:1.2rem;
+    font-weight:bold;
+    letter-spacing:2px;
+    transform:rotate(-6deg) scale(0);
+    text-transform:uppercase;
+    animation:carimbar .45s ease-out forwards;
+  }
+  .carimbo.recusado{ border-color:var(--vermelho-neg); color:var(--vermelho-neg); }
+
+  @keyframes carimbar{
+    0%{ transform:rotate(-6deg) scale(0); opacity:0; }
+    60%{ transform:rotate(-6deg) scale(1.15); opacity:1; }
+    100%{ transform:rotate(-6deg) scale(1); opacity:1; }
+  }
+
+  #resposta p{ margin-top:16px; color:var(--azul-claro); font-size:.92rem; }
+
+  .rodape-admin{
+    margin-top:28px;
+    text-align:center;
+  }
+  .link-admin{
+    background:none;
+    border:none;
+    color:rgba(255,255,255,.4);
+    font-size:.78rem;
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  .link-admin:hover{ color:var(--dourado); }
+
+  /* ---------- modal admin ---------- */
+  .modal-fundo{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(5,10,25,.85);
+    z-index:10;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-fundo.ativo{ display:flex; }
+
+  .modal{
+    background:var(--azul-noite);
+    border:1px solid var(--dourado);
+    border-radius:16px;
+    width:100%;
+    max-width:560px;
+    max-height:85vh;
+    overflow-y:auto;
+    padding:22px;
+  }
+  .modal h2{ margin-top:0; color:var(--dourado); font-size:1.2rem; }
+  .modal .resumo{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .pill{
+    font-size:.78rem;
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+  }
+  table{ width:100%; border-collapse:collapse; font-size:.85rem; }
+  th,td{ text-align:left; padding:8px 6px; border-bottom:1px solid rgba(255,255,255,.1); }
+  th{ color:var(--dourado); text-transform:uppercase; font-size:.7rem; letter-spacing:.5px; }
+  .status{ padding:3px 8px; border-radius:6px; font-size:.75rem; font-weight:bold; }
+  .status--confirmado{ background:rgba(74,222,128,.15); color:var(--verde-ok); }
+  .status--recusado{ background:rgba(255,107,107,.15); color:var(--vermelho-neg); }
+  .status--pendente{ background:rgba(255,255,255,.1); color:rgba(255,255,255,.55); }
+
+  .modal-botoes{ display:flex; gap:8px; flex-wrap:wrap; margin-top:16px; }
+  .modal-botoes button{
+    flex:1;
+    min-width:120px;
+    padding:10px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,.2);
+    background:rgba(255,255,255,.06);
+    color:var(--branco);
+    cursor:pointer;
+    font-size:.82rem;
+  }
+  .modal-botoes button:hover{ border-color:var(--dourado); color:var(--dourado); }
+  .fechar-modal{ background:var(--dourado) !important; color:var(--azul-noite) !important; font-weight:bold; border:none !important; }
+</style>
+</head>
+<body>
+
+<div class="fita"></div>
+<div class="paw-bg"></div>
+
+<main>
+  <div class="distintivo">🐾</div>
+  <h1>Detetive <span>Labrador</span></h1>
+  <p class="subtitulo">Acesso restrito a detetives convidados. Digite seu nome no crachá para abrir o caso.</p>
+
+  <!-- ===================== TELA 1 — ENTRADA ===================== -->
+  <section class="cartao" id="tela-entrada">
+    <label for="campo-nome">Nome do detetive convidado</label>
+    <input type="text" id="campo-nome" placeholder="Digite seu nome completo" autocomplete="off">
+    <button class="btn btn-principal" onclick="verificarConvidado()">🔍 Abrir o convite</button>
+    <div id="msg-erro">Esse nome não está na lista de investigadores convidados. Confira a grafia ou fale com o anfitrião.</div>
+  </section>
+
+  <!-- ===================== TELA 2 — CONVITE ===================== -->
+  <section class="cartao" id="tela-convite">
+
+    <div class="foto-convite">
+      <!--
+        IMAGEM DO CONVITE:
+        troque o "src" abaixo pelo arquivo da sua arte/pôster quando quiser.
+        Mantenha a imagem na mesma pasta deste HTML (ou use um link direto).
+      -->
+      <img src="imagem.png" alt="Arte do convite Detetive Labrador"
+           onerror="this.parentElement.innerHTML='<span style=\'font-size:3rem\'>🕵️‍♂️🐾</span>'">
+    </div>
+
+    <p class="saudacao">Bem-vindo(a) ao caso, <b id="nome-exibido">detetive</b>.</p>
+    <h2 class="titulo-missao">Você foi <span>convocado(a)</span> para uma missão!</h2>
+
+    <div class="briefing" id="info-mensagem">
+      Vista-se de detetive e venha desvendar os mistérios da festa mais divertida do ano!
+    </div>
+
+    <!-- ações de confirmação -->
+    <div class="acoes" id="area-acoes">
+      <button class="btn btn-principal" onclick="responderConvite('confirmado')">✅ Confirmar presença</button>
+      <button class="btn btn-recusar" onclick="responderConvite('recusado')">Não poderei comparecer</button>
+    </div>
+
+    <!-- resultado -->
+    <div id="resposta">
+      <div class="carimbo" id="carimbo-texto">Confirmado</div>
+      <p id="resposta-texto">Presença registrada! Nos vemos na festa, detetive.</p>
+      <button class="btn btn-secundario" onclick="location.reload()">Voltar ao início</button>
+    </div>
+
+  </section>
+
+  <div class="rodape-admin">
+    <button class="link-admin" onclick="abrirPainelAdmin()">Painel do anfitrião</button>
+  </div>
+</main>
+
+<div class="fita"></div>
+
+<!-- ===================== MODAL DO ANFITRIÃO ===================== -->
+<div class="modal-fundo" id="modal-admin">
+  <div class="modal">
+    <h2>🔐 Painel do anfitrião</h2>
+    <div class="resumo" id="resumo-admin"></div>
+    <table>
+      <thead>
+        <tr><th>Convidado</th><th>Status</th><th>Respondido em</th></tr>
+      </thead>
+      <tbody id="tabela-admin-body"></tbody>
+    </table>
+    <div class="modal-botoes">
+      <button onclick="exportarJSON()">⬇️ Exportar JSON</button>
+      <button onclick="exportarCSV()">⬇️ Exportar CSV</button>
+      <button onclick="limparRespostas()">🗑️ Limpar respostas</button>
+      <button class="fechar-modal" onclick="fecharPainelAdmin()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO DO ANFITRIÃO — edite livremente esta seção
+   ============================================================ */
+
+// 1) Lista de convidados autorizados a entrar (o nome digitado
+//    precisa "bater" com um destes, sem diferenciar maiúsculas/acentos).
+const LISTA_CONVIDADOS = [
+  "Herlan",
+  "Jandileia",
+  "Beatriz",
+  "Vitor"
+  // adicione mais nomes aqui, um por linha, entre aspas
+];
+
+// 2) Dados da festa
+const FESTA = {
+  
+  mensagem: "Vista-se de detetive e venha desvendar os mistérios da festa mais divertida do ano!"
+};
+
+// 3) Senha para abrir o painel do anfitrião
+const SENHA_ADMIN = "detetive123";
+
+// 4) (opcional) URL de um webhook / Google Apps Script para receber
+//    cada confirmação também fora do navegador do convidado (para que
+//    o anfitrião veja tudo num só lugar, mesmo com convidados em
+//    aparelhos diferentes). Deixe em branco para usar só o painel local.
+const API_WEBHOOK_URL = ""; // ex: "https://script.google.com/macros/s/XXX/exec"
+
+/* ============================================================
+   NÃO É NECESSÁRIO EDITAR DAQUI PARA BAIXO
+   ============================================================ */
+
+const CHAVE_BANCO = "detetive_labrador_rsvp_v1";
+let convidadoAtual = null;
+
+function normalizar(txt){
+  return txt.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function preencherDetalhesFesta(){
+  document.getElementById("info-aniversariante").textContent = FESTA.aniversariante;
+  document.getElementById("info-data").textContent = FESTA.data;
+  document.getElementById("info-hora").textContent = FESTA.hora;
+  document.getElementById("info-local").textContent = FESTA.local;
+  document.getElementById("info-endereco").textContent = FESTA.endereco;
+  document.getElementById("info-mensagem").textContent = FESTA.mensagem;
+}
+preencherDetalhesFesta();
+
+function obterBanco(){
+  try{ return JSON.parse(localStorage.getItem(CHAVE_BANCO) || "{}"); }
+  catch(e){ return {}; }
+}
+function salvarBanco(banco){
+  localStorage.setItem(CHAVE_BANCO, JSON.stringify(banco));
+}
+
+function verificarConvidado(){
+  const digitado = document.getElementById("campo-nome").value;
+  const alvo = normalizar(digitado);
+  const encontrado = LISTA_CONVIDADOS.find(n => normalizar(n) === alvo);
+  const erro = document.getElementById("msg-erro");
+
+  if(!digitado.trim() || !encontrado){
+    erro.style.display = "block";
+    return;
+  }
+  erro.style.display = "none";
+  convidadoAtual = encontrado;
+
+  document.getElementById("nome-exibido").textContent = encontrado;
+  document.getElementById("tela-entrada").style.display = "none";
+  document.getElementById("tela-convite").style.display = "block";
+
+  // se esse convidado já respondeu antes neste navegador, mostra o resultado direto
+  const banco = obterBanco();
+  if(banco[encontrado]){
+    exibirResposta(banco[encontrado].status);
+  }
+}
+
+function responderConvite(status){
+  if(!convidadoAtual) return;
+  const banco = obterBanco();
+  banco[convidadoAtual] = { status, respondidoEm: new Date().toISOString() };
+  salvarBanco(banco);
+  enviarParaWebhook(convidadoAtual, status);
+  exibirResposta(status);
+}
+
+function exibirResposta(status){
+  document.getElementById("area-acoes").style.display = "none";
+  document.getElementById("resposta").style.display = "block";
+
+  const carimbo = document.getElementById("carimbo-texto");
+  const texto = document.getElementById("resposta-texto");
+
+  if(status === "confirmado"){
+    carimbo.textContent = "Confirmado";
+    carimbo.classList.remove("recusado");
+    texto.textContent = "Presença registrada! Nos vemos na festa, detetive 🎉";
+  }else{
+    carimbo.textContent = "Recusado";
+    carimbo.classList.add("recusado");
+    texto.textContent = "Tudo bem! Sentiremos sua falta neste caso. Obrigado por avisar.";
+  }
+}
+
+async function enviarParaWebhook(nome, status){
+  if(!API_WEBHOOK_URL) return;
+  try{
+    await fetch(API_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome, status, respondidoEm: new Date().toISOString() })
+    });
+  }catch(e){
+    console.warn("Não foi possível sincronizar com a API externa:", e);
+  }
+}
+
+/* ---------------- painel do anfitrião ---------------- */
+
+function abrirPainelAdmin(){
+  const senha = prompt("Digite a senha do anfitrião:");
+  if(senha === null) return;
+  if(senha !== SENHA_ADMIN){
+    alert("Senha incorreta.");
+    return;
+  }
+  renderizarPainelAdmin();
+  document.getElementById("modal-admin").classList.add("ativo");
+}
+function fecharPainelAdmin(){
+  document.getElementById("modal-admin").classList.remove("ativo");
+}
+
+function rotuloStatus(s){
+  if(s === "confirmado") return "Confirmado";
+  if(s === "recusado") return "Recusado";
+  return "Pendente";
+}
+
+function renderizarPainelAdmin(){
+  const banco = obterBanco();
+  const corpo = document.getElementById("tabela-admin-body");
+  corpo.innerHTML = "";
+
+  let totalConfirmado = 0, totalRecusado = 0, totalPendente = 0;
+
+  LISTA_CONVIDADOS.forEach(nome => {
+    const registro = banco[nome];
+    const status = registro ? registro.status : "pendente";
+    if(status === "confirmado") totalConfirmado++;
+    else if(status === "recusado") totalRecusado++;
+    else totalPendente++;
+
+    const dataResposta = registro ? new Date(registro.respondidoEm).toLocaleString("pt-BR") : "—";
+
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td>${nome}</td>
+      <td><span class="status status--${status}">${rotuloStatus(status)}</span></td>
+      <td>${dataResposta}</td>
+    `;
+    corpo.appendChild(linha);
+  });
+
+  document.getElementById("resumo-admin").innerHTML = `
+    <span class="pill">👥 Convidados: ${LISTA_CONVIDADOS.length}</span>
+    <span class="pill">✅ Confirmados: ${totalConfirmado}</span>
+    <span class="pill">❌ Recusados: ${totalRecusado}</span>
+    <span class="pill">⏳ Pendentes: ${totalPendente}</span>
+  `;
+}
+
+function montarListaCompleta(){
+  const banco = obterBanco();
+  return LISTA_CONVIDADOS.map(nome => {
+    const registro = banco[nome];
+    return {
+      nome,
+      status: registro ? registro.status : "pendente",
+      respondidoEm: registro ? registro.respondidoEm : null
+    };
+  });
+}
+
+function baixarArquivo(conteudo, nomeArquivo, tipo){
+  const blob = new Blob([conteudo], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nomeArquivo;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function exportarJSON(){
+  const dados = montarListaCompleta();
+  baixarArquivo(JSON.stringify(dados, null, 2), "confirmacoes-festa.json", "application/json");
+}
+
+function exportarCSV(){
+  const dados = montarListaCompleta();
+  const linhas = ["Nome,Status,Respondido em"];
+  dados.forEach(d => {
+    linhas.push(`"${d.nome}","${rotuloStatus(d.status)}","${d.respondidoEm || ""}"`);
+  });
+  baixarArquivo(linhas.join("\n"), "confirmacoes-festa.csv", "text/csv");
+}
+
+function limparRespostas(){
+  if(confirm("Isso vai apagar todas as respostas salvas neste navegador. Continuar?")){
+    localStorage.removeItem(CHAVE_BANCO);
+    renderizarPainelAdmin();
+  }
+}
+</script>
+</body>
+</html>
